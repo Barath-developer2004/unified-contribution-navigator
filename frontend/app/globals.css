@@ -82,3 +82,20 @@ html {
   animation: float 3s ease-in-out infinite;
 }
 
+@keyframes lightning {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(-100%) rotate(-45deg);
+  }
+  5%, 95% {
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+    transform: translateY(100%) rotate(-45deg);
+  }
+}
+
+.animate-lightning {
+  animation: lightning 3s infinite;
+}
