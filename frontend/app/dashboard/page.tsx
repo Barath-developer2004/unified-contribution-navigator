@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { toast } from "@/components/ui/use-toast";
 
 interface Repository {
   title: string;
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const { theme } = useTheme();
   const router = useRouter();
@@ -40,12 +42,13 @@ export default function Dashboard() {
 
         try {
           setLoading(true);
+          setError(null);
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/search?query=${encodeURIComponent(searchQuery)}`, {
             credentials: 'include'
           });
 
           if (!response.ok) {
-            throw new Error('Search failed');
+            throw new Error(response.statusText || 'Search failed');
           }
 
           const data = await response.json();
@@ -56,6 +59,12 @@ export default function Dashboard() {
           });
         } catch (error) {
           console.error('Search error:', error);
+          setError(error instanceof Error ? error.message : 'An error occurred while searching');
+          toast({
+            title: "Search Error",
+            description: "Failed to fetch search results. Please try again.",
+            variant: "destructive",
+          });
         } finally {
           setLoading(false);
         }
@@ -76,6 +85,22 @@ export default function Dashboard() {
       searchRepositories.cancel();
     };
   }, [searchRepositories]);
+
+  // Error component
+  const ErrorDisplay = ({ message }: { message: string }) => (
+    <div className="text-center py-8">
+      <div className="text-red-500 dark:text-red-400 mb-4">{message}</div>
+      <Button 
+        onClick={() => {
+          setError(null);
+          if (query) searchRepositories(query);
+        }}
+        variant="outline"
+      >
+        Try Again
+      </Button>
+    </div>
+  );
 
   // Memoize the repository card component
   const RepositoryCard = useMemo(() => {
@@ -102,9 +127,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex gap-4 mb-2">
-              <span>⭐ {repo.stars}</span>
-              <span>🍴 {repo.forks}</span>
-              <span>👀 {repo.watchers}</span>
+              <span title="Stars">⭐ {repo.stars.toLocaleString()}</span>
+              <span title="Forks">🍴 {repo.forks.toLocaleString()}</span>
+              <span title="Watchers">👀 {repo.watchers.toLocaleString()}</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {repo.tags.map((tag) => (
@@ -157,19 +182,29 @@ export default function Dashboard() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-4">Find Your Next Project</h1>
-        <Input
-          type="text"
-          placeholder="Search for projects..."
-          value={query}
-          onChange={handleSearchChange}
-          className="w-full p-4 text-lg"
-        />
+        <div className="relative">
+          <Input
+            type="text"
+            placeholder="Search for projects..."
+            value={query}
+            onChange={handleSearchChange}
+            className="w-full p-4 text-lg pr-10"
+            aria-label="Search projects"
+          />
+          {loading && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-violet-500"></div>
+            </div>
+          )}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
-        {loading ? (
+        {error ? (
+          <ErrorDisplay message={error} />
+        ) : loading ? (
           <LoadingSkeletons />
-        ) : (
+        ) : results.length > 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -179,8 +214,13 @@ export default function Dashboard() {
               <RepositoryCard key={repo.url} repo={repo} />
             ))}
           </motion.div>
-        )}
-      </AnimatePresence>
+        ) : query ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            No projects found matching your search.
+          </div>
+        ) : null}
+FRONTEND_URL=<your-production-frontend-url>
+GITHUB_REDIRECT_URI=<your-production-backend-url>/auth/callback      </AnimatePresence>
     </div>
   );
 }
