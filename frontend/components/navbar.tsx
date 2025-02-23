@@ -32,6 +32,11 @@ export function Navbar() {
                 Recommendation
               </Button>
             </Link>
+            <Link href="/profile">
+              <Button variant="ghost" className="text-gray-400 hover:text-white">
+                Profile
+              </Button>
+            </Link>
             <div className="h-6 w-px bg-gray-800" />
             <ModeToggle />
           </nav>
@@ -40,4 +45,3 @@ export function Navbar() {
     </header>
   )
 }
-

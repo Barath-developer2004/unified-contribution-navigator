@@ -1,9 +1,19 @@
 "use client"
 
-import React from "react"
-import { Star, GitFork, Eye, Tag } from "lucide-react"
-import { Navbar } from "@/components/navbar"
-import { motion } from "framer-motion"
+import React, { useState } from "react"
+import { Star, GitFork, Eye, Tag, Sparkles, Filter } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/layout/page-container'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface Repository {
   title: string
@@ -13,154 +23,162 @@ interface Repository {
   forks: number
   watchers: number
   tags: string[]
+  topics: string[]
 }
 
+// Mock recommendations data
 const recommendations: Repository[] = [
   {
-    title: "cqu-code-index",
-    description: "An index including some FOSS (Free and Open Source Software) about Chongqing University / 一份收录与重庆大学有关的 FOSS（自由/开源软件）的目录",
-    topics: ["campus", "cqu", "cqu-tool-bucket", "floss", "foss", "free-software", "freesoftware", "open-source", "opensource", "university"],
-    url: "https://github.com/cqu-lug/cqu-code-index",
-    stars: 27,
-    forks: 3,
-    commits: 0,
-    readme: "",
-    languages: []
+    title: "react-query",
+    description: "Powerful asynchronous state management for React applications",
+    url: "https://github.com/tanstack/query",
+    stars: 35200,
+    forks: 2100,
+    watchers: 450,
+    tags: ["React", "State Management", "TypeScript"],
+    topics: ["react", "typescript", "state-management", "async", "hooks"]
   },
   {
-    title: "bspwm",
-    description: "",
-    topics: ["bspwm", "foss", "linux", "open-source", "x11", "xorg"],
-    url: "https://github.com/ilhamisbored/bspwm",
-    stars: 26,
-    forks: 2,
-    commits: 0,
-    readme: "",
-    languages: []
+    title: "next.js",
+    description: "The React Framework for Production",
+    url: "https://github.com/vercel/next.js",
+    stars: 112000,
+    forks: 24800,
+    watchers: 1200,
+    tags: ["React", "Framework", "SSR"],
+    topics: ["react", "javascript", "framework", "ssr", "jamstack"]
   },
   {
-    title: "smr",
-    description: "Space Merchant Realms open-source game engine",
-    topics: ["docker", "foss", "mmo", "mysql", "pbbg", "php8", "space-game"],
-    url: "https://github.com/smrealms/smr",
-    stars: 26,
-    forks: 16,
-    commits: 0,
-    readme: "",
-    languages: []
+    title: "tailwindcss",
+    description: "A utility-first CSS framework for rapid UI development",
+    url: "https://github.com/tailwindlabs/tailwindcss",
+    stars: 73500,
+    forks: 3900,
+    watchers: 890,
+    tags: ["CSS", "Framework", "UI"],
+    topics: ["css", "framework", "design", "utility-first", "responsive"]
   },
   {
-    title: "behaviopy",
-    description: "Behavioral data analysis and plotting in Python.",
-    topics: ["animal-behavior", "biomedical", "data-science", "foss", "multimodality", "plotting"],
-    url: "https://github.com/TheChymera/behaviopy",
-    stars: 26,
-    forks: 13,
-    commits: 0,
-    readme: "",
-    languages: []
-  },
-  {
-    title: "licensebat",
-    description: "🔐⛵ Effortless dependency compliance with your license policies",
-    topics: ["foss", "license-compliance", "license-management", "licenses", "oss"],
-    url: "https://github.com/licensebat/licensebat",
-    stars: 26,
-    forks: 7,
-    commits: 0,
-    readme: "",
-    languages: []
-  },
-  {
-    title: "registration",
-    description: "Get your own 'is-not.cool' subdomain!",
-    topics: ["dev", "foss", "free", "free-for-dev", "free-for-developers", "subdomain"],
-    url: "https://github.com/is-not-cool/registration",
-    stars: 26,
-    forks: 24,
-    commits: 0,
-    readme: "",
-    languages: []
-  },
-  {
-    title: "cornychat",
-    description: "🌽 Corny Chat is an open source audio space built on Jam that integrates Nostr and Lightning",
-    topics: ["audio", "bitcoin", "chat", "foss", "lightning", "nostr", "voice"],
-    url: "https://github.com/vicariousdrama/cornychat",
-    stars: 25,
-    forks: 9,
-    commits: 0,
-    readme: "",
-    languages: []
+    title: "shadcn-ui",
+    description: "Beautifully designed components built with Radix UI and Tailwind CSS",
+    url: "https://github.com/shadcn/ui",
+    stars: 45200,
+    forks: 2800,
+    watchers: 520,
+    tags: ["UI", "Components", "React"],
+    topics: ["react", "tailwindcss", "radix-ui", "components", "design-system"]
   }
-]
+];
 
 export default function Recommend() {
+  const [filter, setFilter] = useState("all")
+  const [sortBy, setSortBy] = useState("stars")
+
+  const sortedRepos = [...recommendations].sort((a, b) => {
+    if (sortBy === "stars") return b.stars - a.stars
+    if (sortBy === "forks") return b.forks - a.forks
+    return 0
+  })
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950 text-white">
-      <Navbar />
-      <main className="flex-1">
-        <div className="container max-w-5xl mx-auto p-4 py-8">
+    <PageContainer>
+      <div className="container max-w-6xl mx-auto p-4 py-8">
+        <AnimatePresence>
           <motion.div
+            key="header"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
             className="text-center mb-12 space-y-4"
           >
-            <h1 className="text-5xl font-bold tracking-tight text-violet-400">
-              Recommended Repositories
+            <h1 className="text-5xl font-bold tracking-tight text-violet-400 flex items-center justify-center gap-2">
+              <Sparkles className="h-8 w-8 text-yellow-400" /> Recommended for You
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Explore some recommended open-source projects.
+              Discover projects that match your interests and skills
             </p>
           </motion.div>
 
-          <div className="space-y-4">
-            {recommendations.map((repo, index) => (
+          {/* Filters and Sort */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Filter className="h-5 w-5" /> Customize Your View
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-4">
+                <div className="w-48">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="stars">Most Stars</SelectItem>
+                      <SelectItem value="forks">Most Forks</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {sortedRepos.map((repo, index) => (
               <motion.div
-                key={index}
+                key={repo.title}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="p-5 border border-gray-800 rounded-lg bg-gray-900 shadow-md hover:shadow-lg transition-all duration-300"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold text-violet-400">{repo.title}</h3>
-                    <p className="text-gray-400">{repo.description}</p>
-                  </div>
-                </div>
+                <Card className="h-full hover:border-violet-500/50 transition-colors">
+                  <CardHeader>
+                    <CardTitle className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold text-violet-400">{repo.title}</h3>
+                        <p className="text-sm text-gray-400 mt-1">{repo.description}</p>
+                      </div>
+                      <a href={repo.url} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="outline" className="hover:bg-violet-500 hover:text-white">
+                          View
+                        </Button>
+                      </a>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4 mb-4 text-gray-400 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-yellow-400" />
+                        <span>{repo.stars}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <GitFork className="h-4 w-4 text-blue-400" />
+                        <span>{repo.forks}</span>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-4 mt-2 text-gray-400 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-400" />
-                    <span>{repo.stars}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <GitFork className="h-4 w-4 text-blue-400" />
-                    <span>{repo.forks}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4 text-green-400" />
-                    <span>{repo.watchers}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {repo.topics.map((tag, i) => (
-                    <span
-                      key={i}
-                      className="bg-gray-800 px-3 py-1 text-xs rounded-full flex items-center text-gray-300"
-                    >
-                      <Tag className="h-3 w-3 mr-1 text-violet-400" /> {tag}
-                    </span>
-                  ))}
-                </div>
+                    <div className="flex flex-wrap gap-2">
+                      {repo.topics?.slice(0, 5).map((tag, i) => (
+                        <Badge key={i} variant="secondary" className="bg-gray-800/50">
+                          <Tag className="h-3 w-3 mr-1 text-violet-400" />
+                          {tag}
+                        </Badge>
+                      ))}
+                      {repo.topics?.length > 5 && (
+                        <Badge variant="secondary" className="bg-gray-800/50">
+                          +{repo.topics.length - 5} more
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
-        </div>
-      </main>
-    </div>
+        </AnimatePresence>
+      </div>
+    </PageContainer>
   )
 }

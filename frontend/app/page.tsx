@@ -6,8 +6,10 @@ import axios from "axios"
 import { Loader2, Search, Star, GitFork, Eye, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Navbar } from "@/components/navbar"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { PageContainer } from '@/components/layout/page-container'
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface Repository {
   title: string
@@ -45,13 +47,14 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950 text-white">
-      <Navbar />
-      <main className="flex-1">
-        <div className="container max-w-5xl mx-auto p-4 py-8">
+    <PageContainer>
+      <div className="container max-w-5xl mx-auto p-4 py-8">
+        <AnimatePresence>
           <motion.div
+            key="header"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
             className="text-center mb-12 space-y-4"
           >
@@ -91,9 +94,10 @@ export default function Home() {
           <div className="space-y-4">
             {results.map((repo, index) => (
               <motion.div
-                key={index}
+                key={repo.title}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
                 className="p-5 border border-gray-800 rounded-lg bg-gray-900 shadow-md hover:shadow-lg transition-all duration-300"
               >
@@ -132,8 +136,8 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </main>
-    </div>
-  )
+        </AnimatePresence>
+      </div>
+    </PageContainer>
+  );
 }
